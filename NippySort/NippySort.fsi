@@ -5,9 +5,10 @@
 type NippySortStats =
     {
         Comparison : int -> int -> unit
-        Swap : int -> int -> unit
-        SortUp : int -> int -> int -> int -> unit
-        SortDown : int -> int -> int -> int -> unit
+        Swap       : int -> int -> unit
+        SortUp     : int -> int -> int -> int -> unit
+        SortDown   : int -> int -> int -> int -> unit
+        Reverse    : int -> int -> unit
     }
 
 [<RequireQualifiedAccess>]

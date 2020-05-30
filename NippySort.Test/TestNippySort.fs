@@ -4,6 +4,13 @@ open FsCheck
 open NippySort
 open Xunit
 
+type NippySortEvent =
+| Comparison of int * int
+| Swap       of int * int
+| SortUp     of int * int * int * int
+| SortDown   of int * int * int * int
+| Reverse    of int * int
+
 [<RequireQualifiedAccess>]
 module TestNippySort =
 
@@ -22,23 +29,46 @@ module TestNippySort =
 
         check prop
 
+    let trace (xs : int list) : NippySortEvent list =
+
+        let events = ResizeArray ()
+
+        let stats =
+            {
+                Comparison = fun i j                       -> Comparison (i, j)                       |> events.Add
+                Swap       = fun i j                       -> Swap (i, j)                             |> events.Add
+                SortUp     = fun lower upper pivot smaller -> SortUp (lower, upper, pivot, smaller)   |> events.Add
+                SortDown   = fun lower upper pivot greater -> SortDown (lower, upper, pivot, greater) |> events.Add
+                Reverse    = fun i j                       -> Reverse (i, j)                          |> events.Add
+            }
+
+        xs |> Array.ofList |> NippySort.sortWithStats stats
+        events |> List.ofSeq
+
     [<Fact>]
     let ``NippySort does not swap any elements of a sorted array`` () =
 
         let prop (xs : int list) =
+            let sorted = xs |> List.sort
+            let events = trace sorted
+            let isSwapEvent = function Swap (_,_) -> true | _ -> false
+            events |> List.filter isSwapEvent = []
 
-            let swapCount = ref 0
+        check prop
 
-            let stats =
-                {
-                    Comparison = fun _ _ -> ()
-                    Swap = fun _ _ -> incr swapCount
-                    SortUp = fun _ _ _ _ -> ()
-                    SortDown = fun _ _ _ _ -> ()
-                }
+    [<Fact>]
+    let ``NippySort just reverses a sorted but reversed list`` () =
 
-            let sorted = xs |> List.sort |> Array.ofList
-            NippySort.sortWithStats stats sorted
-            swapCount.Value = 0
+        let prop (xs : int list) =
+            let reversed = xs |> List.sort |> List.rev
+            let events = trace reversed
+
+            let expected =
+                if xs |> List.distinct |> List.length >= 2 then
+                    [ Reverse (0, reversed |> List.length) ]
+                else
+                    []
+
+            expected = events
 
         check prop
