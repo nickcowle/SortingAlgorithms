@@ -28,7 +28,8 @@ module TestNiftySort =
         xs |> Array.ofList |> NiftySort.sortWithStats stats
         events |> List.ofSeq
 
-    let isSwapEvent = function Swap (_,_) -> true | _ -> false
+    let isSwapEvent        = function Swap        (_,_) -> true | _ -> false
+    let isSortSectionEvent = function SortSection (_,_) -> true | _ -> false
 
     [<Fact>]
     let ``NiftySort sorts the elements of the array in place correctly`` () =
@@ -63,6 +64,16 @@ module TestNiftySort =
         check prop
 
     [<Fact>]
+    let ``NiftySort only makes one pass through a sorted array`` () =
+
+        let prop (xs : int list) =
+            let sorted = xs |> List.sort
+            let events = trace sorted
+            events |> List.filter isSortSectionEvent |> List.length = 1
+
+        check prop
+
+    [<Fact>]
     let ``NiftySort sorts reversed arrays correctly`` () =
 
         let prop (xs : int list) =
@@ -86,6 +97,17 @@ module TestNiftySort =
         check prop
 
     [<Fact>]
+    let ``NiftySort only makes one pass through a reversed array`` () =
+
+        let prop (xs : int list) =
+            let sorted = xs |> List.sort
+            let reversed = sorted |> List.rev
+            let events = trace reversed
+            events |> List.filter isSortSectionEvent |> List.length = 1
+
+        check prop
+
+    [<Fact>]
     let ``NiftySort sorts constant arrays correctly`` () =
 
         let prop (x : int) (NonNegativeInt count) =
@@ -103,5 +125,15 @@ module TestNiftySort =
             let xs = List.replicate count x
             let events = trace xs
             events |> List.filter isSwapEvent |> List.isEmpty
+
+        check prop
+
+    [<Fact>]
+    let ``NiftySort only makes one pass through a constant array`` () =
+
+        let prop (x : int) (NonNegativeInt count) =
+            let xs = List.replicate count x
+            let events = trace xs
+            events |> List.filter isSortSectionEvent |> List.length = 1
 
         check prop

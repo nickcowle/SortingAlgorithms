@@ -19,40 +19,61 @@ module NiftySort =
         xs.[j] <- x
 
 
-    let rec sortInner (stats : NiftySortStats) (xs : 'a array) (lower : int) (upper : int) (innerLeft : int) (innerRight : int) (maxLower : 'a) (minUpper : 'a) =
+    let rec sortInner
+        (stats : NiftySortStats) (xs : 'a array)
+        (lower : int) (upper : int) (innerLeft : int) (innerRight : int)
+        (maxLower : 'a) (minUpper : 'a)
+        (leftSorted : bool) (rightSorted : bool) =
+
+        let sortInner = sortInner stats xs lower upper
+        let inline getLeft () = xs.[innerLeft]
+        let inline getRight () = xs.[innerRight - 1]
 
         match innerRight - innerLeft with
         | 0 ->
-            // We've successfully partitioned the values - now recurse and sort these
-            // TODO: Keep track of whether these parts are sorted or not!
-            sortSection stats xs lower innerLeft
-            sortSection stats xs innerRight upper
+            // We've successfully partitioned the values - now recurse and sort these if necessary
+            if not leftSorted then sortSection stats xs lower innerLeft
+            if not rightSorted then sortSection stats xs innerRight upper
         | 1 ->
-            let x = xs.[innerLeft]
-            if x >= minUpper then
-                sortInner stats xs lower upper innerLeft (innerRight - 1) maxLower minUpper
+            let x = getLeft ()
+            if x > minUpper then
+                sortInner innerLeft (innerRight - 1) maxLower minUpper leftSorted false
             else
-                sortInner stats xs lower upper (innerLeft + 1) innerRight (max maxLower x) minUpper
+                let leftSorted = if x < maxLower then false else leftSorted
+                sortInner (innerLeft + 1) innerRight (max maxLower x) minUpper leftSorted rightSorted
         | n ->
-            let testLeft = max maxLower xs.[innerLeft]
-            let testRight = min minUpper xs.[innerRight - 1]
-
-            if testLeft <= testRight then
-                sortInner stats xs lower upper (innerLeft + 1) (innerRight - 1) testLeft testRight
-            else
-                let testLeft = max maxLower xs.[innerRight - 1]
-                let testRight = min minUpper xs.[innerLeft]
-                if testLeft <= testRight then
-                    swap stats xs innerLeft (innerRight - 1)
-                    sortInner stats xs lower upper (innerLeft + 1) (innerRight - 1) testLeft testRight
-                elif xs.[innerLeft] <= maxLower && xs.[innerRight - 1] <= maxLower then
+            let left = getLeft ()
+            let right = getRight ()
+            if left < maxLower then
+                // We're not going to move the left point. Left is now definitely not sorted
+                if right < maxLower then
+                    // Right point needs to be moved left
                     if n > 2 then swap stats xs (innerLeft + 1) (innerRight - 1)
-                    sortInner stats xs lower upper (innerLeft + 2) innerRight maxLower minUpper
-                elif xs.[innerLeft] >= minUpper && xs.[innerRight - 1] >= minUpper then
-                    if n > 2 then swap stats xs innerLeft (innerRight - 2)
-                    sortInner stats xs lower upper innerLeft (innerRight - 2) maxLower minUpper
+                    sortInner (innerLeft + 2) innerRight maxLower minUpper false rightSorted
                 else
-                    failwith "Unreachable"
+                    // Right can stay right
+                    let minUpper, rightSorted = if right > minUpper then minUpper, false else right, rightSorted
+                    sortInner (innerLeft + 1) (innerRight - 1) maxLower minUpper false rightSorted
+            elif right > minUpper then
+                // We're not going to move the right point. Right is now definitely not sorted.
+                if left > minUpper then
+                    // Left point needs to be moved right
+                    if n > 2 then swap stats xs innerLeft (innerRight - 2)
+                    sortInner innerLeft (innerRight - 2) maxLower minUpper leftSorted false
+                else
+                    // Left can stay left
+                    let maxLower, leftSorted = if left < maxLower then maxLower, false else left, leftSorted
+                    sortInner (innerLeft + 1) (innerRight - 1) maxLower minUpper leftSorted false
+            else
+                // left >= maxLower, right <= minUpper, but we don't know that left <= right
+                if max maxLower left > min minUpper right then
+                    swap stats xs innerLeft (innerRight - 1)
+
+                let left = getLeft ()
+                let right = getRight ()
+                let maxLower, leftSorted  = if left  < maxLower then maxLower, false else left,  leftSorted
+                let minUpper, rightSorted = if right > minUpper then minUpper, false else right, rightSorted
+                sortInner (innerLeft + 1) (innerRight - 1) maxLower minUpper leftSorted rightSorted
 
 
     and sortSection (stats : NiftySortStats) (xs : 'a array) (lower : int) (upper : int) =
@@ -62,7 +83,7 @@ module NiftySort =
         | 1 -> ()
         | _ ->
             if xs.[lower] > xs.[upper - 1] then swap stats xs lower (upper - 1)
-            sortInner stats xs lower upper (lower + 1) (upper - 1) (xs.[lower]) (xs.[upper - 1])
+            sortInner stats xs lower upper (lower + 1) (upper - 1) (xs.[lower]) (xs.[upper - 1]) true true
 
 
     let sortWithStats (stats : NiftySortStats) (xs : 'a array) : unit =
