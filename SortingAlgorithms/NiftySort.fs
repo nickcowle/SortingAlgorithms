@@ -1,4 +1,4 @@
-﻿namespace NippySort
+﻿namespace SortingAlgorithms
 
 [<NoEquality>]
 [<NoComparison>]

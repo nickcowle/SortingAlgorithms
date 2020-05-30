@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NippySort\NippySort.fsproj" />
+    <ProjectReference Include="..\SortingAlgorithms\SortingAlgorithms.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

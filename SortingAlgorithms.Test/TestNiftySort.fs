@@ -1,7 +1,7 @@
-﻿namespace NippySort.Test
+﻿namespace SortingAlgorithms.Test
 
 open FsCheck
-open NippySort
+open SortingAlgorithms
 open Xunit
 
 type NiftySortEvent =
