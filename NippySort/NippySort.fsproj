@@ -10,6 +10,8 @@
   <ItemGroup>
     <Compile Include="NippySort.fsi" />
     <Compile Include="NippySort.fs" />
+    <Compile Include="NiftySort.fsi" />
+    <Compile Include="NiftySort.fs" />
   </ItemGroup>
 
   <ItemGroup>

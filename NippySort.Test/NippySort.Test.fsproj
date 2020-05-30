@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Compile Include="TestNippySort.fs" />
+    <Compile Include="TestNiftySort.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
