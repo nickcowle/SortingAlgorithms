@@ -26,7 +26,7 @@ module NippySort =
     let rec sortUp (stats : NippySortStats) (xs : 'a array) (lower : int) (upper : int) (pivot : int) (smaller : int) =
         stats.SortUp lower upper pivot smaller
         let mutable smaller = smaller
-        while smaller < pivot && (compare stats xs (<) smaller pivot) do smaller <- smaller + 1
+        while smaller < pivot && (compare stats xs (<=) smaller pivot) do smaller <- smaller + 1
         if smaller = pivot then
             // We've made it all the way up to the pivot - sort either side
             sortSection stats xs lower pivot
@@ -40,7 +40,7 @@ module NippySort =
     and sortDown (stats : NippySortStats) (xs : 'a array) (lower : int) (upper : int) (pivot : int) (greater : int) =
         stats.SortDown lower upper pivot greater
         let mutable greater = greater
-        while greater > pivot + 1 && (compare stats xs (>) (greater - 1) pivot) do greater <- greater - 1
+        while greater > pivot + 1 && (compare stats xs (>=) (greater - 1) pivot) do greater <- greater - 1
         if greater = pivot + 1 then
             // We've made it all the way down to the pivot - sort either side
             sortSection stats xs lower pivot
