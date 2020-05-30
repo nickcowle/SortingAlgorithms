@@ -14,7 +14,6 @@ module NiftySort =
 
     let inline swap (stats : NiftySortStats) (xs : 'a array) (i : int) (j : int) =
         stats.Swap i j
-        // TOD eliminate cases where we i = j
         let x = xs.[i]
         xs.[i] <- xs.[j]
         xs.[j] <- x
@@ -34,7 +33,7 @@ module NiftySort =
                 sortInner stats xs lower upper innerLeft (innerRight - 1) maxLower minUpper
             else
                 sortInner stats xs lower upper (innerLeft + 1) innerRight (max maxLower x) minUpper
-        | _ ->
+        | n ->
             let testLeft = max maxLower xs.[innerLeft]
             let testRight = min minUpper xs.[innerRight - 1]
 
@@ -47,10 +46,10 @@ module NiftySort =
                     swap stats xs innerLeft (innerRight - 1)
                     sortInner stats xs lower upper (innerLeft + 1) (innerRight - 1) testLeft testRight
                 elif xs.[innerLeft] <= maxLower && xs.[innerRight - 1] <= maxLower then
-                    swap stats xs (innerLeft + 1) (innerRight - 1)
+                    if n > 2 then swap stats xs (innerLeft + 1) (innerRight - 1)
                     sortInner stats xs lower upper (innerLeft + 2) innerRight maxLower minUpper
                 elif xs.[innerLeft] >= minUpper && xs.[innerRight - 1] >= minUpper then
-                    swap stats xs innerLeft (innerRight - 2)
+                    if n > 2 then swap stats xs innerLeft (innerRight - 2)
                     sortInner stats xs lower upper innerLeft (innerRight - 2) maxLower minUpper
                 else
                     failwith "Unreachable"
@@ -74,8 +73,8 @@ module NiftySort =
 
         let dummyStats =
             {
-                SortSection = fun _ _     -> ()
-                Swap        = fun _ _     -> ()
+                SortSection = fun _ _ -> ()
+                Swap        = fun _ _ -> ()
             }
 
         sortWithStats dummyStats xs
