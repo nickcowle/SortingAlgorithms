@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="NippySort.fsi" />
     <Compile Include="NippySort.fs" />
   </ItemGroup>
 
